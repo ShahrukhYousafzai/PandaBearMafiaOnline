@@ -2,111 +2,187 @@
 <html lang="en-us">
 
 <head>
-	<meta charset="utf-8">
-	<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
-	<title>PandaBearMafia</title>
-	<style>
-		html,
-		body {
-			background: #000;
-			width: 100%;
-			height: 100%;
-			overflow: visible;
-			padding: 0;
-			margin: 0;
-		}
+    <meta charset="utf-8">
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+    <meta http-equiv="Content-Security-Policy" content="upgrade-insecure-requests" />
+    <title>PlowedEarth</title>
+    <style>
+        html, body {
+            background: #000;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            padding: 0;
+            margin: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+        }
 
-		div#gameContainer {
-			background: transparent !important;
-			position: absolute;
-		}
+        #loading-container {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            position: absolute;
+            width: 100%;
+            height: 100%;
+        }
 
-		div#gameContainer canvas {
-			position: absolute;
-		}
+        /* #logo-container img {
+            max-width: 250px;
+            height: auto;
+            margin-bottom: 20px;
+        } */
 
-		div#gameContainer canvas[data-pixel-art="true"] {
-			position: absolute;
-			image-rendering: optimizeSpeed;
-			image-rendering: -webkit-crisp-edges;
-			image-rendering: -moz-crisp-edges;
-			image-rendering: -o-crisp-edges;
-			image-rendering: crisp-edges;
-			image-rendering: -webkit-optimize-contrast;
-			image-rendering: optimize-contrast;
-			image-rendering: pixelated;
-			-ms-interpolation-mode: nearest-neighbor;
-		}
-	</style>
+        #progress-bar-container {
+            width: 50%;
+            max-width: 400px;
+            height: 20px;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 10px;
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+            position: relative;
+        }
+
+        #progress-bar {
+            width: 0%;
+            height: 100%;
+            background: linear-gradient(to right, #D6B673, #89FE28);
+            transition: width 0.3s ease;
+            border-radius: 10px;
+            position: absolute;
+        }
+
+        #progress-text {
+            width: 100%;
+            text-align: center;
+            font-size: 14px;
+            font-weight: bold;
+            color: white;
+            position: absolute;
+            z-index: 1;
+        }
+
+        #gameContainer {
+            background: transparent !important;
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        #gameContainer canvas {
+            position: absolute;
+        }
+    </style>
+
+<script>window.SimpleSpectrum={};window.AudioContext=(function(){var q=window.AudioContext||window.webkitAudioContext;return function(){var ac=new q();window.SimpleSpectrum.ac=ac;window.SimpleSpectrum.a=ac.createAnalyser();window.SimpleSpectrum.a.smoothingTimeConstant=0;window.SimpleSpectrum.fa=new Uint8Array(window.SimpleSpectrum.a.frequencyBinCount);window.SimpleSpectrum.la=new Uint8Array(window.SimpleSpectrum.a.fftSize);window.SimpleSpectrum.a.connect(ac.destination);ac.actualDestination=ac.destination;Object.defineProperty(ac,'destination',{value:window.SimpleSpectrum.a,writable:false});return ac;}})();</script>
 </head>
 
 <body>
-	<div id="gameContainer">
-		<canvas id="unity-canvas" data-pixel-art=""></canvas>
-		<script src="Build/bb0d9ecdb05db3e84da20bd14a4f84dc.loader.js"></script>
-		<script>
-			var canvas = document.querySelector("#unity-canvas");
-			var config = {
-				dataUrl: "Build/fd6172acfc5a83c24fca7b5248ef400c.data",
-				frameworkUrl: "Build/020ee6d8ca853f422d2ead2e6dce0deb.framework.js",
-				codeUrl: "Build/924f42f986ede29eb19a862e6e655838.wasm",
-				streamingAssetsUrl: "StreamingAssets",
-				companyName: "ShahrukhYousafzai",
-				productName: "PandaBearMafia",
-				productVersion: "1.0",
-			};
-			var scaleToFit;
-			try {
-				scaleToFit = !!JSON.parse("true");
-			} catch (e) {
-				scaleToFit = true;
-			}
-			function progressHandler(progress) {
-				var percent = progress * 100 + '%';
-				canvas.style.background = 'linear-gradient(to right, white, white ' + percent + ', transparent ' + percent + ', transparent) no-repeat center';
-				canvas.style.backgroundSize = '100% 1rem';
-			}
-			function onResize() {
-				var container = canvas.parentElement;
-				var w;
-				var h;
 
-				if (scaleToFit) {
-					w = window.innerWidth;
-					h = window.innerHeight;
+    <div id="loading-container">
+        <!-- <div id="logo-container">
+            <img src="./Logo.png" alt="Game Logo">
+        </div> -->
+        <div id="progress-bar-container">
+            <div id="progress-bar"></div>
+            <div id="progress-text">0%</div>
+        </div>
+    </div>
 
-					var r = 600 / 960;
+    <div id="gameContainer">
+        <canvas id="unity-canvas"></canvas>
 
-					if (w * r > window.innerHeight) {
-						w = Math.min(w, Math.ceil(h / r));
-					}
-					h = Math.floor(w * r);
-				} else {
-					w = 960;
-					h = 600;
-				}
+        <script src="Build/PlowedEarth.loader.js"></script>
+        <script>
+            var canvas = document.querySelector("#unity-canvas");
+            var progressBar = document.querySelector("#progress-bar");
+            var progressText = document.querySelector("#progress-text");
+            var loadingContainer = document.querySelector("#loading-container");
+            var nethereumUnityInstance = null;
 
-				container.style.width = canvas.style.width = w + "px";
-				container.style.height = canvas.style.height = h + "px";
-				container.style.top = Math.floor((window.innerHeight - h) / 2) + "px";
-				container.style.left = Math.floor((window.innerWidth - w) / 2) + "px";
-			}
-			createUnityInstance(canvas, config, progressHandler).then(function (instance) {
-				canvas = instance.Module.canvas;
-				onResize();
-			});
-			window.addEventListener('resize', onResize);
-			onResize();
+            var config = {
+                dataUrl: "Build/PlowedEarth.data",
+                frameworkUrl: "Build/PlowedEarth.framework.js",
+                codeUrl: "Build/PlowedEarth.wasm",
+                streamingAssetsUrl: "StreamingAssets",
+                companyName: "DefaultCompany",
+                productName: "PlowedEarth",
+                productVersion: "1.0",
+            };
 
-			if (/iPhone|iPad|iPod|Android/i.test(navigator.userAgent)) {
-				// Mobile device style: fill the whole browser client area with the game canvas:
-				const meta = document.createElement('meta');
-				meta.name = 'viewport';
-				meta.content = 'width=device-width, height=device-height, initial-scale=1.0, user-scalable=no, shrink-to-fit=yes';
-				document.getElementsByTagName('head')[0].appendChild(meta);
-			}
-		</script>
-	</div>
+            function progressHandler(progress) {
+                var percent = Math.round(progress * 100) + '%';
+                progressBar.style.width = percent;
+                progressText.innerText = percent;
+            }
+
+            function onResize() {
+                var container = canvas.parentElement;
+                var w, h;
+
+                var scaleToFit = true;
+                if (scaleToFit) {
+                    w = window.innerWidth;
+                    h = window.innerHeight;
+                    var r = 720 / 1440;
+
+                    if (w * r > window.innerHeight) {
+                        w = Math.min(w, Math.ceil(h / r));
+                    }
+                    h = Math.floor(w * r);
+                } else {
+                    w = 1440;
+                    h = 720;
+                }
+
+                container.style.width = canvas.style.width = w + "px";
+                container.style.height = canvas.style.height = h + "px";
+               
+                
+                // Fix centering issue by using flexbox
+                container.style.display = "flex";
+                container.style.justifyContent = "center";
+                container.style.alignItems = "center";
+
+                // Ensure Unity does not override positioning
+    canvas.style.position = "absolute";
+    canvas.style.top = "50%";
+    canvas.style.left = "50%";
+    canvas.style.transform = "translate(-50%, -50%)";
+            }
+
+            createUnityInstance(canvas, config, progressHandler).then(function(instance) {
+                nethereumUnityInstance = instance;
+                canvas = instance.Module.canvas;
+                
+    // Re-apply centering after Unity initializes
+    setTimeout(onResize, 100);
+    
+                loadingContainer.style.display = "none";
+            });
+
+            window.addEventListener('resize', onResize);
+            onResize();
+
+            if (/iPhone|iPad|iPod|Android/i.test(navigator.userAgent)) {
+                const meta = document.createElement('meta');
+                meta.name = 'viewport';
+                meta.content = 'width=device-width, height=device-height, initial-scale=1.0, user-scalable=no, shrink-to-fit=yes';
+                document.getElementsByTagName('head')[0].appendChild(meta);
+            }
+
+            document.querySelector('#canvas-container').requestFullscreen();
+        </script>
+    </div>
+
 </body>
 
 </html>
